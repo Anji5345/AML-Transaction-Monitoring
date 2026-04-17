@@ -48,7 +48,7 @@ class StructuringDetector:
                 "pattern_type": "STRUCTURING",
                 "alert_message": f"{self.threshold_count} near-threshold transactions detected within 24 hours",
                 "risk_score": 85,
-                "transactions": evidence,
+                "transactions": list(evidence),
             }
 
         return None
