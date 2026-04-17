@@ -1,12 +1,7 @@
 pipeline {
-    agent {
-        node {
-            customWorkspace '/workspace/aml-monitoring-pipeline'
-        }
-    }
+    agent any
 
     options {
-        timestamps()
         disableConcurrentBuilds()
     }
 
