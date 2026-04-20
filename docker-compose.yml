@@ -51,22 +51,52 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   jobmanager:
-    image: flink:1.18.1-scala_2.12-java11
+    build:
+      context: ./flink
     container_name: aml-flink-jobmanager
     ports:
       - "8081:8081"
     command: jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 16
+        parallelism.default: 16
+      - KAFKA_BOOTSTRAP_SERVERS=aml-kafka:29092
+      - KAFKA_INPUT_TOPIC=txn.raw
+      - KAFKA_ALERT_TOPIC=aml.alerts
+      - AML_FLINK_GROUP_ID=aml-pattern-detector-flink-v1
+      - PYFLINK_CLIENT_EXECUTABLE=/usr/bin/python3
+      - PYFLINK_PYTHON=/usr/bin/python3
+    volumes:
+      - ./:/opt/aml
+    depends_on:
+      - kafka
 
   taskmanager:
-    image: flink:1.18.1-scala_2.12-java11
+    build:
+      context: ./flink
     container_name: aml-flink-taskmanager
     depends_on:
       - jobmanager
     command: taskmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 16
+        parallelism.default: 16
+      - KAFKA_BOOTSTRAP_SERVERS=aml-kafka:29092
+      - KAFKA_INPUT_TOPIC=txn.raw
+      - KAFKA_ALERT_TOPIC=aml.alerts
+      - AML_FLINK_GROUP_ID=aml-pattern-detector-flink-v1
+      - PYFLINK_CLIENT_EXECUTABLE=/usr/bin/python3
+      - PYFLINK_PYTHON=/usr/bin/python3
+    volumes:
+      - ./:/opt/aml
 
   airflow-postgres:
     image: postgres:15

@@ -2,10 +2,10 @@ import json
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from pyflink.common import Types, WatermarkStrategy
 from pyflink.common.serialization import SimpleStringSchema
-from pyflink.common.state import ListStateDescriptor
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.datastream.connectors.kafka import (
     DeliveryGuarantee,
@@ -15,6 +15,7 @@ from pyflink.datastream.connectors.kafka import (
     KafkaSource,
 )
 from pyflink.datastream.functions import KeyedProcessFunction
+from pyflink.datastream.state import ListStateDescriptor
 
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
@@ -109,7 +110,7 @@ class AMLPatternProcessFunction(KeyedProcessFunction):
             evidence=evidence,
         )]
 
-    def _detect_layering(self, current_transaction: dict, transactions: list[dict]) -> dict | None:
+    def _detect_layering(self, current_transaction: dict, transactions: list[dict]) -> Optional[dict]:
         current_time = parse_timestamp(current_transaction["transaction_time"])
         cutoff = current_time - timedelta(hours=2)
         recent = [
@@ -141,7 +142,7 @@ class AMLPatternProcessFunction(KeyedProcessFunction):
             evidence=sequence,
         )
 
-    def _detect_velocity(self, current_transaction: dict, transactions: list[dict]) -> dict | None:
+    def _detect_velocity(self, current_transaction: dict, transactions: list[dict]) -> Optional[dict]:
         current_time = parse_timestamp(current_transaction["transaction_time"])
         current_hour_cutoff = current_time - timedelta(hours=1)
         thirty_day_cutoff = current_time - timedelta(days=30)
